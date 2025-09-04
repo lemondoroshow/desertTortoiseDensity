@@ -51,26 +51,28 @@ for (i in 2:(dim(raw_densities)[2])) {
   raw_df <- data.frame(years = years, densities = densities) |>
     dplyr::filter(!is.na(densities))
   colors <- c('Raw density line' = 'darkgreen', 'Raw density points' = 'black')
-  raw_plot <- ggplot(data = raw_df, aes(x = years), xlim = 2000:2025) +
+  raw_plot <- ggplot(data = raw_df, aes(x = years)) +
     geom_line(aes(y = densities, color = 'Raw density line'), linewidth = 0.7) + 
     geom_point(aes(y = densities, color = 'Raw density points')) +
     labs(x = 'Year', y = 'Density (torts / km²)', color = 'Color',
          title = paste0('Raw densities across ', stratum, ' from range-wide monitoring, 2001 - 2024')) +
     theme(panel.grid = element_line(color = 'grey'),
           panel.background = element_rect(fill = 'white', colour = 'black')) +
-    scale_color_manual(values = colors)
+    scale_color_manual(values = colors) +
+    scale_x_continuous(limits = c(2000, 2025))
   
   # Plot adjusted densities
   adj_df <- data.frame(years = years, densities = fit, points = densities)
   colors <- c('Spline density line' = 'purple', 'Raw density points' = 'black')
-  adj_plot <- ggplot(data = adj_df, aes(x = years), xlim = 2000:2025) +
+  adj_plot <- ggplot(data = adj_df, aes(x = years)) +
     geom_line(aes(y = densities, color = 'Spline density line'), linewidth = 0.7) + 
     geom_point(aes(y = points, color = 'Raw density points')) +
     labs(x = 'Year', y = 'Density (torts / km²)', color = 'Color',
          title = paste0('Adjusted densities across ', stratum, ' from range-wide monitoring, 2001 - 2024')) +
     theme(panel.grid = element_line(color = 'grey'),
           panel.background = element_rect(fill = 'white', colour = 'black')) +
-    scale_color_manual(values = colors)
+    scale_color_manual(values = colors) +
+    scale_x_continuous(limits = c(2000, 2025))
   
   # Put both plots together
   combined_plot <- grid.arrange(raw_plot, adj_plot, ncol = 1)

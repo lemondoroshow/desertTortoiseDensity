@@ -83,3 +83,6 @@ for (i in 2:(dim(raw_densities)[2])) {
 # Clean up
 rm(i, ts, stratum, years, densities, fit, adj_df, adj_plot, combined_plot,
    raw_df, raw_plot, colors, lower, upper, where_na)
+
+# Export data
+write.csv(adj_densities, './data/density/densitiesAdj.csv', row.names = FALSE, quote = FALSE)

@@ -1,4 +1,6 @@
 library(dplyr)
+library(ggplot2)
+library(gridExtra)
 
 ############################ SPLINE INTERPOLATION ##############################
 
@@ -39,7 +41,39 @@ for (i in 2:(dim(raw_densities)[2])) {
   # Add results to dataframe
   adj_densities[stratum] <- lapply(fit, round, 1) |>
     unlist()
+  
+  # Plot raw densities
+  raw_df <- data.frame(years = years, densities = densities) |>
+    dplyr::filter(!is.na(densities))
+  colors <- c('Raw density line' = 'darkgreen', 'Raw density points' = 'black')
+  raw_plot <- ggplot(data = raw_df, aes(x = years)) +
+    geom_line(aes(y = densities, color = 'Raw density line'), linewidth = 0.7) + 
+    geom_point(aes(y = densities, color = 'Raw density points')) +
+    labs(x = 'Year', y = 'Density (torts / km²)', color = 'Color',
+         title = paste0('Raw densities across ', stratum, ' from range-wide monitoring, 2001 - 2024')) +
+    theme(panel.grid = element_line(color = 'grey'),
+          panel.background = element_rect(fill = 'white', colour = 'black')) +
+    scale_color_manual(values = colors)
+  
+  # Plot adjusted densities
+  adj_df <- data.frame(years = years, densities = fit, points = densities)
+  colors <- c('Spline density line' = 'purple', 'Raw density points' = 'black')
+  adj_plot <- ggplot(data = adj_df, aes(x = years)) +
+    geom_line(aes(y = densities, color = 'Spline density line'), linewidth = 0.7) + 
+    geom_point(aes(y = points, color = 'Raw density points')) +
+    labs(x = 'Year', y = 'Density (torts / km²)', color = 'Color',
+         title = paste0('Adjusted densities across ', stratum, ' from range-wide monitoring, 2001 - 2024')) +
+    theme(panel.grid = element_line(color = 'grey'),
+          panel.background = element_rect(fill = 'white', colour = 'black')) +
+    scale_color_manual(values = colors)
+  
+  # Put both plots together
+  combined_plot <- grid.arrange(raw_plot, adj_plot, ncol = 1)
+  
+  # Export
+  ggsave(paste0('./figures/spline/splineComparison', stratum, '.png'), 
+         combined_plot, width = 8, height = 5, units = 'in')
 }
 
 # Clean up
-rm(i, ts, stratum, years, densities, fit)
+rm(i, ts, stratum, years, densities, fit, adj_df, adj_plot, combined_plot, raw_df, raw_plot)

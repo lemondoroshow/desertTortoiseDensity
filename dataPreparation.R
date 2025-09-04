@@ -5,7 +5,7 @@ library(gridExtra)
 ############################ SPLINE INTERPOLATION ##############################
 
 # Import data
-raw_densities <- read.csv('./data/density/density_data_raw.csv')
+raw_densities <- read.csv('./data/density/densitiesRaw.csv')
 strata <- colnames(raw_densities)[colnames(raw_densities) != 'Year']
 
 # Set up adjusted density data frame
@@ -51,7 +51,7 @@ for (i in 2:(dim(raw_densities)[2])) {
   raw_df <- data.frame(years = years, densities = densities) |>
     dplyr::filter(!is.na(densities))
   colors <- c('Raw density line' = 'darkgreen', 'Raw density points' = 'black')
-  raw_plot <- ggplot(data = raw_df, aes(x = years)) +
+  raw_plot <- ggplot(data = raw_df, aes(x = years), xlim = 2000:2025) +
     geom_line(aes(y = densities, color = 'Raw density line'), linewidth = 0.7) + 
     geom_point(aes(y = densities, color = 'Raw density points')) +
     labs(x = 'Year', y = 'Density (torts / km²)', color = 'Color',
@@ -63,7 +63,7 @@ for (i in 2:(dim(raw_densities)[2])) {
   # Plot adjusted densities
   adj_df <- data.frame(years = years, densities = fit, points = densities)
   colors <- c('Spline density line' = 'purple', 'Raw density points' = 'black')
-  adj_plot <- ggplot(data = adj_df, aes(x = years)) +
+  adj_plot <- ggplot(data = adj_df, aes(x = years), xlim = 2000:2025) +
     geom_line(aes(y = densities, color = 'Spline density line'), linewidth = 0.7) + 
     geom_point(aes(y = points, color = 'Raw density points')) +
     labs(x = 'Year', y = 'Density (torts / km²)', color = 'Color',

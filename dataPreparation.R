@@ -30,13 +30,18 @@ for (i in 2:(dim(raw_densities)[2])) {
   densities <- as.matrix(ts)[,2]
   
   # Count how many missing years there are
-  num_na[[stratum]] <- sum(is.na(densities))
+  where_na <- is.na(densities)
+  num_na[[stratum]] <- sum(where_na)
   
   # Fit spline function
   fit <- spline(x = years, y = densities, xout = years)$y
   
-  # Remove negative values from interpolation
+  # Remove negative values from interpolation and remove outliers from spline
   fit[fit < 0] <- 0
+  lower <- quantile(densities, 0.25, na.rm = TRUE) - 1.5 * IQR(densities, na.rm = TRUE)
+  upper <- quantile(densities, 0.75, na.rm = TRUE) + 1.5 * IQR(densities, na.rm = TRUE)
+  fit[where_na & fit < lower] <- lower
+  fit[where_na & fit > upper] <- upper
   
   # Add results to dataframe
   adj_densities[stratum] <- lapply(fit, round, 1) |>
@@ -76,4 +81,5 @@ for (i in 2:(dim(raw_densities)[2])) {
 }
 
 # Clean up
-rm(i, ts, stratum, years, densities, fit, adj_df, adj_plot, combined_plot, raw_df, raw_plot)
+rm(i, ts, stratum, years, densities, fit, adj_df, adj_plot, combined_plot,
+   raw_df, raw_plot, colors, lower, upper, where_na)

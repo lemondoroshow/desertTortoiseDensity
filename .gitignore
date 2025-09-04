@@ -1,2 +1,4 @@
-tcaShapes/tcaRaster*
+.RData*
+.Rhistory
 *.Rproj*
+tcaShapes/tcaRaster*

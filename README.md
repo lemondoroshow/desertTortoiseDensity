@@ -1,2 +1,2 @@
-# ACFIT
-The code and data repository for the Autoregressive and Climate Forecasting Index for Tortoises (ACFIT), used to measure desert tortoise (Gopherus agassizii) vulnerabilities in the Mojave Desert.
+# desertTortoiseDensity
+The code and data repository for density analysis of the desert tortoise (Gopherus agassizii) in the Mojave Desert.

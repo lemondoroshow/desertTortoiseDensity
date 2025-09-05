@@ -1,6 +1,11 @@
 library(dplyr)
 library(ggplot2)
 library(gridExtra)
+library(prism)
+library(sf)
+library(terra)
+library(tidyterra)
+library(tmap)
 
 ############################ SPLINE INTERPOLATION ##############################
 
@@ -91,3 +96,77 @@ mean(num_na[names(num_na) != 'AG']) # 8.93 missing years on average w/o AG
 
 # Export data
 write.csv(adj_densities, './data/density/densities_spline_adj.csv', row.names = FALSE, quote = FALSE)
+
+############################# PRISM ACQUISITION ################################
+
+# Set download directory
+prism_set_dl_dir('./data/prism')
+
+# Get annual PRISM data
+get_prism_annual(
+  type = 'ppt',
+  years = 2001:2024,
+  keepZip = FALSE
+)
+
+# List all shapefiles
+shapes <- c(
+  list.files(path = './tcaShapes/coloradoDesert/', 
+             pattern = '.shp', recursive = TRUE, full.names = TRUE),
+  list.files(path = './tcaShapes/easternMojave/', 
+             pattern = '.shp', recursive = TRUE, full.names = TRUE),
+  list.files(path = './tcaShapes/northeasternMojave/', 
+             pattern = '.shp', recursive = TRUE, full.names = TRUE),
+  list.files(path = './tcaShapes/westernMojave/', 
+             pattern = '.shp', recursive = TRUE, full.names = TRUE)
+)
+
+# Set up data frame
+total_data <- data.frame(matrix(ncol = 0, nrow = 24))
+total_data$Year <- 2001:2024
+
+# Iterate through strata
+for (shp in shapes) {
+  stratum <- strata[which(shapes == shp)]
+  
+  # Open shapefile
+  shp <- sf::read_sf(shp) |>
+    terra::vect()
+  
+  # Iterate through years of interest
+  precips <- list()
+  for (year in 2001:2024) {
+    print(paste0("Beginning ", stratum, " for ", year)) # Debugging
+    
+    # Open PRISM data
+    prism_rast <- prism_archive_subset(
+      type = 'ppt',
+      temp_period = 'annual',
+      years = year
+    ) |>
+      pd_to_file() |>
+      terra::rast()
+    
+    # Clip raster to stratum, calculate mean
+    mean_precip <- terra::project(prism_rast, shp) |>
+      terra::mask(shp) |>
+      terra::crop(shp) |>
+      terra::global(mean, na.rm = TRUE)
+    
+    # Add to list
+    precips <- c(precips, mean_precip$mean)
+  }
+  
+  # Add to data frame
+  stratum_data = data.frame(
+    Year = 2001:2024,
+    placeholder = unlist(precips)
+  ) |> rename(!!stratum := placeholder)
+  total_data <- left_join(total_data, stratum_data, by = 'Year')
+}
+
+# Clean up
+rm(mean_precip, precips, prism_rast, shp, stratum_data, stratum, year)
+
+# Export total data
+write.csv(total_data, './data/compiledCovariates/annualPrecipitation.csv', row.names = FALSE, quote = FALSE)

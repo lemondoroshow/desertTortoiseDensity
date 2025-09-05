@@ -5,7 +5,7 @@ library(gridExtra)
 ############################ SPLINE INTERPOLATION ##############################
 
 # Import data
-raw_densities <- read.csv('./data/density/densitiesRaw.csv')
+raw_densities <- read.csv('./data/density/densities_raw.csv')
 strata <- colnames(raw_densities)[colnames(raw_densities) != 'Year']
 
 # Set up adjusted density data frame
@@ -78,7 +78,7 @@ for (i in 2:(dim(raw_densities)[2])) {
   combined_plot <- grid.arrange(raw_plot, adj_plot, ncol = 1)
   
   # Export
-  ggsave(paste0('./figures/spline/splineComparison', stratum, '.png'), 
+  ggsave(paste0('./figures/spline/spline_comparison_', stratum, '.png'), 
          combined_plot, width = 8, height = 5, units = 'in')
 }
 
@@ -90,4 +90,4 @@ mean(num_na) # 8.5 missing years on average
 mean(num_na[names(num_na) != 'AG']) # 8.93 missing years on average w/o AG
 
 # Export data
-write.csv(adj_densities, './data/density/densitiesAdj.csv', row.names = FALSE, quote = FALSE)
+write.csv(adj_densities, './data/density/densities_spline_adj.csv', row.names = FALSE, quote = FALSE)

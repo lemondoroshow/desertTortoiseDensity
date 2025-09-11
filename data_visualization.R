@@ -54,3 +54,42 @@ for (i in 2:(dim(raw_densities)[2])) {
   ggsave(paste0('./figures/spline/spline_comparison_', stratum, '.png'), 
          combined_plot, width = 8, height = 5, units = 'in')
 }
+
+############################ PRISM PRECIPITATION ###############################
+
+# Import data
+densities <- read.csv('./data/density/densities_raw.csv')
+precips <- read.csv('./data/compiledCovariates/annual_precipitation.csv')
+
+# Iterate through data
+for (i in 2:dim(densities)[2]) {
+  
+  # Open data
+  dense <- as.matrix(densities[,c(1, i)])
+  precip <- as.matrix(precips[, c(1, i)])
+  stratum <- colnames(dense)[2]
+  years <- as.matrix(dense)[,1]
+  print(stratum) # Debugging
+  
+  # Scale densities and precipitation for axes' sake
+  scl <- mean(precip[, stratum]) / 
+    mean(dense[, stratum], na.rm = TRUE)
+  
+  # Plot densities and precipitation together
+  df <- data.frame(year = years, density = dense[, stratum], precip = precip[, stratum]) |>
+    dplyr::filter(!is.na(density))
+  colors <- c('Density' = 'darkgreen', 'Precipitation' = 'royalblue')
+  plot <- ggplot(data = df, aes(x = year)) +
+    geom_line(aes(y = density, color = 'Density'), linewidth = 0.7) +
+    geom_line(aes(y = precip / scl, color = 'Precipitation'), linewidth = 0.7) +
+    scale_y_continuous(name = "Density (torts / km²)",
+                       sec.axis = sec_axis(trans = ~ . * scl, name = "Precipitation (mm / yr)")) +
+    scale_color_manual(values = colors) +
+    labs(x = "Year", title = paste0("Comparison of tortoise densities and annual precipitation for ", stratum)) +
+    theme(panel.grid = element_line(color = 'grey'),
+          panel.background = element_rect(fill = 'white', colour = 'black')) +
+    scale_x_continuous(limits = c(2000, 2025))
+  
+  # Export plots
+  ggsave(paste0('./figures/densityPrecip/density_precip_', stratum, '.png'), plot)
+}

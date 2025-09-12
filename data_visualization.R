@@ -62,6 +62,8 @@ densities <- read.csv('./data/density/densities_raw.csv')
 precips <- read.csv('./data/compiledCovariates/annual_precipitation.csv')
 
 # Iterate through data
+r_sqs <- vector("list", 16)
+names(r_sqs) <- colnames(densities[-1])
 for (i in 2:dim(densities)[2]) {
   
   # Open data
@@ -91,5 +93,9 @@ for (i in 2:dim(densities)[2]) {
     scale_x_continuous(limits = c(2000, 2025))
   
   # Export plots
-  ggsave(paste0('./figures/densityPrecip/density_precip_', stratum, '.png'), plot)
+  ggsave(paste0('./figures/densityPrecip/density_precip_', stratum, '.png'), plot,
+         width = 8, height = 3, units = 'in')
+  
+  # Inspect correlation
+  r_sqs[[stratum]] <- cor(df$density, df$precip) ^ 2
 }
